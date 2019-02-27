@@ -1,6 +1,4 @@
-const knex = require("knex");
-const knexConfig = require("../knexfile");
-const db = knex(knexConfig.development);
+db = require("../data/dbConfig");
 
 function get() {
     return db("users");
@@ -11,10 +9,10 @@ function getBy(filter) {
 };
 
 function getById(id) {
-    return db("users").where(id).first();
+    return db("users").where({id}).first();
 };
 
-function add(user) {
+async function add(user) {
     const [id] = await db("users").insert(user)
     return getById(id);
 };
