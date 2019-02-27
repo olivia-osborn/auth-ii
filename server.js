@@ -50,7 +50,7 @@ server.post("/api/login", (req, res) => {
         .then(user => {
             if (user && bcrypt.compareSync(password, user.password)) {
             const token = generateToken(user)
-            res.status(200).json({message: `Welcome ${user.username}`})
+            res.status(200).json({message: `Welcome ${user.username}`, token})
         } else {
             res.status(401).json({message: "invalid credentials"})
         }
@@ -60,8 +60,30 @@ server.post("/api/login", (req, res) => {
     })
 })
 
-// server.post("/api/users", (req, res) => {
-//     res.send("it's alive!")
-// })
+function restricted(req, res, next) {
+    const token = req.headers.authorization;
+    if (token) {
+        jwt.verify(token, secret, (err, decodedToken) => {
+            if (err) {
+                res.status(401).json({message: "you shall not pass!"})
+            } else {
+                req.decodedJwt = decodedToken;
+                next();
+            }
+        })
+    } else {
+        res.status(401).json({message: "you don't even go here!"})
+    }
+}
+
+server.get("/api/users", restricted, (req, res) => {
+    const users = Users.get()
+    .then(users => {
+        res.json(users)
+    })
+    .catch(error => {
+        res.send(error)
+    })
+})
 
 module.exports = server;
