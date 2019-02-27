@@ -29,9 +29,36 @@ server.post("/api/register", (req, res) => {
         })
 })
 
-// server.post("/api/login", (req, res) => {
-//     res.send("it's alive!")
-// })
+function generateToken(user) {
+    const payload = {
+        subject: user.id,
+        username: user.username,
+        company: ["lambda"],
+    };
+    const options = {
+        expiresIn: "1d",
+    };
+
+    return jwt.sign(payload, secret, options)
+}
+
+server.post("/api/login", (req, res) => {
+    let {username, password} = req.body;
+
+    Users.getBy({username})
+        .first()
+        .then(user => {
+            if (user && bcrypt.compareSync(password, user.password)) {
+            const token = generateToken(user)
+            res.status(200).json({message: `Welcome ${user.username}`})
+        } else {
+            res.status(401).json({message: "invalid credentials"})
+        }
+    })
+    .catch(error => {
+        res.status(500).json(error);
+    })
+})
 
 // server.post("/api/users", (req, res) => {
 //     res.send("it's alive!")
