@@ -76,7 +76,7 @@ function restricted(req, res, next) {
     }
 }
 
-server.get("/api/users", restricted, (req, res) => {
+server.get("/api/users", (req, res) => {
     const users = Users.get()
     .then(users => {
         res.json(users)
